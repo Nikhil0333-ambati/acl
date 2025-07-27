@@ -1,0 +1,49 @@
+CREATE TABLE Patient (
+    patient_id INT PRIMARY KEY,
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    dob DATE,
+    gender VARCHAR(10),
+    address TEXT,
+    phone VARCHAR(20),
+    insurance_info TEXT
+);
+
+CREATE TABLE Appointment (
+    appointment_id INT PRIMARY KEY,
+    patient_id INT,
+    doctor_id INT,
+    appointment_date DATETIME,
+    status ENUM('Booked', 'Cancelled', 'Completed'),
+    FOREIGN KEY (patient_id) REFERENCES Patient(patient_id),
+    FOREIGN KEY (doctor_id) REFERENCES Doctor(doctor_id)
+);
+
+CREATE TABLE Doctor (
+    doctor_id INT PRIMARY KEY,
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    specialization VARCHAR(255),
+    schedule TEXT
+);
+
+CREATE TABLE Role (
+    role_id INT PRIMARY KEY,
+    role_name VARCHAR(50)
+);
+CREATE TABLE UserRoles (
+    user_id INT,
+    role_id INT,
+    PRIMARY KEY (user_id, role_id),
+    FOREIGN KEY (role_id) REFERENCES Role(role_id)
+);
+CREATE TRIGGER UpdateAppointmentStatus
+AFTER UPDATE ON Appointment
+FOR EACH ROW
+BEGIN
+    IF NEW.status = 'Cancelled' THEN
+        UPDATE Appointment
+        SET status = 'Available'
+        WHERE appointment_id = OLD.appointment_id;
+    END IF;
+END;
